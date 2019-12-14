@@ -1,13 +1,13 @@
-package com.rabobank.demo.RebobankService;
+package com.rabobank.appconfig;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RebobankServiceApplication {
+public class RabobankServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(RebobankServiceApplication.class, args);
+		SpringApplication.run(RabobankServiceApplication.class, args);
 	}
 
 }
