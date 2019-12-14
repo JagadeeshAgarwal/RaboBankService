@@ -3,22 +3,30 @@ package com.rabobank.controller;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletContext;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.rabobank.model.CustomerStatementRecord;
 import com.rabobank.model.FileInfo;
 
 @RestController
@@ -40,9 +48,7 @@ public class CSVFileController {
 		logger.info("Started Processing CSV file");
   FileInfo fileInfo = new FileInfo();
   HttpHeaders headers = new HttpHeaders();
-  BufferedReader br = null;
-  String line = "";
-  String cvsSplitBy = ",";
+  
   if (!inputFile.isEmpty()) {
    try {
     String originalFilename = inputFile.getOriginalFilename();
@@ -51,19 +57,21 @@ public class CSVFileController {
     fileInfo.setFileName(destinationFile.getPath());
     fileInfo.setFileSize(inputFile.getSize());
     headers.add("File Uploaded Successfully - ", originalFilename);
-    
-
-   
-    br = new BufferedReader(new FileReader(destinationFile.getPath()));
-    while ((line = br.readLine()) != null) {
-
-       
-        String[] csvArray = line.split(cvsSplitBy);
-
-        System.out.println("Reference " + csvArray[0] + " , AccountNo" + csvArray[1] + "]");
-
+     BufferedReader reader = Files.newBufferedReader(Paths.get(originalFilename));
+    CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT);
+    List<CustomerStatementRecord> customerRecordList = new ArrayList<CustomerStatementRecord>();
+    for (CSVRecord csvRecord : csvParser) {
+    	CustomerStatementRecord cust= new CustomerStatementRecord();
+        // Accessing Values by Column Index
+    	cust.setAccountNumber(csvRecord.get(0));
+    	cust.setDescription(csvRecord.get(1));
+    	cust.setEndBalance(new BigDecimal(csvRecord.get(2)));
+    	cust.setMutation(csvRecord.get(3));
+    	cust.setStartBalance(new BigDecimal(csvRecord.get(4)));
+    	cust.setTransReference(csvRecord.get(5));
+        
     }
-    
+
     logger.info("Successfully completed Processing CSV file");
     return new ResponseEntity<FileInfo>(fileInfo, headers, HttpStatus.OK);
    } catch (Exception e) {    
